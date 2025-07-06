@@ -29,3 +29,11 @@ const data = [
     image: "https://via.placeholder.com/300x300?text=UN5/WETH",
     opensea: "https://opensea.io/assets/ethereum/0xc36442b4a4522e871399cd717abd8b41f8e88d/1025988"
   }
+  {
+    name: "...",
+    tokenId: "...",
+    value: "...",
+    image: "...",
+    opensea: "..."
+  } 
+  
