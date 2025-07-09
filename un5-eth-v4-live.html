@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>UN5 / ETH V4 Live LP NFT</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -31,45 +31,37 @@
   <div id="image-container">⏳ Loading NFT image...</div>
 
   <script>
-    const provider = new ethers.providers.JsonRpcProvider("https://eth-mainnet.g.alchemy.com/v2/demo"); // 建议换成自己的 Alchemy Key
+    const provider = new ethers.providers.JsonRpcProvider("https://eth-mainnet.g.alchemy.com/v2/demo");
     const nftContract = new ethers.Contract(
       "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
       ["function tokenURI(uint256 tokenId) view returns (string)"],
       provider
     );
 
-    const tokenId = "33948";
+    const tokenId = 33948;
 
     async function loadNFT() {
       try {
         const uri = await nftContract.tokenURI(tokenId);
-        const fixedUri = uri.startsWith("ipfs://")
-          ? uri.replace("ipfs://", "https://ipfs.io/ipfs/")
-          : uri;
+        const ipfsUrl = uri.replace("ipfs://", "https://cloudflare-ipfs.com/ipfs/");
+        const response = await fetch(ipfsUrl);
+        const metadata = await response.json();
 
-        console.log("Metadata URI:", fixedUri);
+        let image = metadata.image || (metadata.data && metadata.data.image);
+        if (!image) throw new Error("No image found in metadata.");
 
-        const res = await fetch(fixedUri);
-        const metadata = await res.json();
-
-        console.log("Metadata JSON:", metadata);
-
-        let imageUrl = metadata.image || metadata.image_url || metadata.imageURI;
-
-        if (!imageUrl) throw new Error("Image URL not found in metadata");
-
-        if (imageUrl.startsWith("ipfs://")) {
-          imageUrl = imageUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
+        if (image.startsWith("ipfs://")) {
+          image = image.replace("ipfs://", "https://cloudflare-ipfs.com/ipfs/");
         }
 
         const img = document.createElement("img");
-        img.src = imageUrl;
+        img.src = image;
         img.alt = "UN5/ETH V4 LP NFT";
         document.getElementById("image-container").innerHTML = "";
         document.getElementById("image-container").appendChild(img);
       } catch (err) {
         document.getElementById("image-container").innerText = "❌ Failed to load NFT image.";
-        console.error("❌ Error loading NFT:", err);
+        console.error("Error loading NFT:", err);
       }
     }
 
