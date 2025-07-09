@@ -6,18 +6,19 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <style>
     body {
-      background: black;
-      color: limegreen;
       font-family: Arial, sans-serif;
+      background: #000;
+      color: #0f0;
       text-align: center;
       padding: 30px;
     }
-    h1 { font-size: 24px; }
-    .info { margin: 15px 0; }
-    #image-container img {
-      border: 3px solid limegreen;
-      border-radius: 8px;
-      max-width: 90%;
+    h1 { font-size: 20px; margin-bottom: 10px; }
+    .info { margin: 10px 0; }
+    img {
+      border: 2px solid #0f0;
+      border-radius: 10px;
+      max-width: 95%;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -30,7 +31,7 @@
   <div id="image-container">⏳ Loading NFT image...</div>
 
   <script>
-    const provider = new ethers.providers.JsonRpcProvider("https://eth-mainnet.g.alchemy.com/v2/demo");
+    const provider = new ethers.providers.JsonRpcProvider("https://eth-mainnet.g.alchemy.com/v2/demo"); // 建议换成你自己的 Alchemy Key
     const nftContract = new ethers.Contract(
       "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
       ["function tokenURI(uint256 tokenId) view returns (string)"],
@@ -42,22 +43,20 @@
     async function loadNFT() {
       try {
         const uri = await nftContract.tokenURI(tokenId);
-        const fixedUri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-        const res = await fetch(fixedUri);
+        const metadataUrl = uri.replace("ipfs://", "https://ipfs.io/ipfs/"); // IPFS 兼容处理
+        const res = await fetch(metadataUrl);
         const metadata = await res.json();
-
         const imageUrl = metadata.image.startsWith("ipfs://")
           ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
           : metadata.image;
-
         const img = document.createElement("img");
         img.src = imageUrl;
-        img.alt = "UN5 / ETH V4 LP NFT";
+        img.alt = "UN5/ETH V4 LP NFT";
         document.getElementById("image-container").innerHTML = "";
         document.getElementById("image-container").appendChild(img);
       } catch (err) {
         document.getElementById("image-container").innerText = "❌ Failed to load NFT image.";
-        console.error(err);
+        console.error("Error loading NFT:", err);
       }
     }
 
