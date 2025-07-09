@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>UN5 V4 LP NFT Gallery</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <style>
     body {
       background: #000;
@@ -13,76 +13,84 @@
       padding: 20px;
     }
     h1 {
-      color: #0f0;
-      margin-bottom: 10px;
+      margin-bottom: 30px;
+      font-size: 22px;
     }
     .nft-card {
-      display: inline-block;
+      margin: 30px auto;
+      padding: 15px;
+      border: 2px solid #0f0;
+      border-radius: 10px;
+      max-width: 320px;
       background: #111;
-      border: 1px solid #0f0;
-      border-radius: 12px;
-      margin: 10px;
-      padding: 10px;
-      width: 300px;
     }
     .nft-card img {
-      width: 100%;
+      max-width: 100%;
       border-radius: 8px;
       border: 2px solid #0f0;
     }
-    .nft-info {
+    .info {
       margin-top: 10px;
       font-size: 14px;
-      line-height: 1.6;
-    }
-    .highlight {
-      color: #0f0;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>UN5 V4 LP NFT Gallery</h1>
-  <p>Displaying all UN5 Uniswap V4 Liquidity NFTs in live style.</p>
+  <h1>UN5 Uniswap V4 LP NFT Gallery</h1>
 
-  <!-- ETH/UN5 -->
-  <div class="nft-card">
-    <img src="https://raw.githubusercontent.com/jackmoy8888/un5-assets/main/nft/un5-eth-v4.png" alt="UN5/ETH V4" />
-    <div class="nft-info">
-      <div><span class="highlight">Pair:</span> UN5 / ETH</div>
-      <div><span class="highlight">Token ID:</span> 33948</div>
-      <div><span class="highlight">Fee Tier:</span> 0.3%</div>
-      <div><span class="highlight">Hook:</span> No Hook</div>
-      <div><span class="highlight">Min Tick:</span> -887220</div>
-      <div><span class="highlight">Max Tick:</span> 887220</div>
+  <div id="gallery">
+    <div class="nft-card" id="card-eth">
+      <div class="info">UN5 / ETH - Token ID: 33948</div>
+      <div>⏳ Loading...</div>
+    </div>
+
+    <div class="nft-card" id="card-wbtc">
+      <div class="info">UN5 / WBTC - Token ID: 30724</div>
+      <div>⏳ Loading...</div>
+    </div>
+
+    <div class="nft-card" id="card-uni">
+      <div class="info">UN5 / UNI - Token ID: 30729</div>
+      <div>⏳ Loading...</div>
     </div>
   </div>
 
-  <!-- WBTC/UN5 -->
-  <div class="nft-card">
-    <img src="https://raw.githubusercontent.com/jackmoy8888/un5-assets/main/nft/un5-wbtc-v4.png" alt="UN5/WBTC V4" />
-    <div class="nft-info">
-      <div><span class="highlight">Pair:</span> UN5 / WBTC</div>
-      <div><span class="highlight">Token ID:</span> 30724</div>
-      <div><span class="highlight">Fee Tier:</span> 0.3%</div>
-      <div><span class="highlight">Hook:</span> No Hook</div>
-      <div><span class="highlight">Min Tick:</span> 276300</div>
-      <div><span class="highlight">Max Tick:</span> 887220</div>
-    </div>
-  </div>
+  <script>
+    const provider = new ethers.providers.JsonRpcProvider("https://eth-mainnet.g.alchemy.com/v2/demo");
+    const nftContract = new ethers.Contract(
+      "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
+      ["function tokenURI(uint256 tokenId) view returns (string)"],
+      provider
+    );
 
-  <!-- UNI/UN5 -->
-  <div class="nft-card">
-    <img src="https://raw.githubusercontent.com/jackmoy8888/un5-assets/main/nft/un5-uni-v4.png" alt="UN5/UNI V4" />
-    <div class="nft-info">
-      <div><span class="highlight">Pair:</span> UN5 / UNI</div>
-      <div><span class="highlight">Token ID:</span> 30729</div>
-      <div><span class="highlight">Fee Tier:</span> 0.3%</div>
-      <div><span class="highlight">Hook:</span> No Hook</div>
-      <div><span class="highlight">Min Tick:</span> -887220</div>
-      <div><span class="highlight">Max Tick:</span> 887220</div>
-    </div>
-  </div>
+    const tokens = [
+      { id: 33948, elementId: "card-eth" },
+      { id: 30724, elementId: "card-wbtc" },
+      { id: 30729, elementId: "card-uni" },
+    ];
 
+    async function loadNFT(tokenId, elementId) {
+      try {
+        const uri = await nftContract.tokenURI(tokenId);
+        const metadataUrl = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+        const res = await fetch(metadataUrl);
+        const metadata = await res.json();
+        const imageUrl = metadata.image.startsWith("ipfs://")
+          ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+          : metadata.image;
+        const img = document.createElement("img");
+        img.src = imageUrl;
+        img.alt = UN5 LP NFT ${tokenId};
+        const card = document.getElementById(elementId);
+        card.innerHTML = <div class="info">${card.querySelector('.info').innerText}</div>;
+        card.appendChild(img);
+      } catch (err) {
+        document.getElementById(elementId).innerHTML += "<div style='color:red'>❌ Failed to load.</div>";
+        console.error(Error loading token ${tokenId}:, err);
+      }
+    }
+
+    tokens.forEach(t => loadNFT(t.id, t.elementId));
+  </script>
 </body>
 </html>
