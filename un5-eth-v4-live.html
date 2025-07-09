@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>UN5/ETH V4 Live LP NFT</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #111; color: #0f0; padding: 2em; text-align: center; }
+    img { max-width: 90vw; border: 2px solid #0f0; border-radius: 8px; margin-top: 1em; }
+    .info { margin-top: 1em; color: #ccc; }
+    button { padding: 10px 20px; margin-top: 1em; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>UN5 / ETH V4 Live LP NFT</h1>
+  <p><strong>Token ID:</strong> 33948</p>
+  <p><strong>Wallet:</strong> 0x090C...338A</p>
+  <p><strong>Source:</strong> Uniswap V4</p>
+
+  <div class="info">This image is fetched directly from Uniswap official NFT metadata.</div>
+  <div id="image-container">⏳ Loading NFT image...</div>
+
+  <script>
+    const tokenId = 33948;
+    const managerAddr = "0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e";
+    async function load() {
+      if (!window.ethereum) {
+        document.getElementById("image-container").innerText = "⚠ Please install MetaMask.";
+        return;
+      }
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const manager = new ethers.Contract(managerAddr, [
+        "function tokenURI(uint256) view returns (string)"
+      ], provider);
+
+      const raw = await manager.tokenURI(tokenId);
+      const base64 = raw.split(",")[1];
+      const json = JSON.parse(atob(base64));
+
+      const img = document.createElement("img");
+      img.src = json.image;
+      document.getElementById("image-container").innerHTML = "";
+      document.getElementById("image-container").appendChild(img);
+    }
+
+    load();
+  </script>
+</body>
+</html>
