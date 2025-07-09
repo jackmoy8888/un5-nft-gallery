@@ -1,43 +1,67 @@
-<script>
-  const provider = new ethers.providers.JsonRpcProvider("https://eth-mainnet.g.alchemy.com/v2/demo");
-  const nftContract = new ethers.Contract(
-    "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
-    ["function tokenURI(uint256 tokenId) view returns (string)"],
-    provider
-  );
-
-  const tokenId = "33948";
-
-  async function loadNFT() {
-    try {
-      const uri = await nftContract.tokenURI(tokenId);
-      const metadataUrl = uri.startsWith("ipfs://")
-        ? "https://ipfs.io/ipfs/" + uri.replace("ipfs://", "")
-        : uri;
-
-      const res = await fetch(metadataUrl);
-      const metadata = await res.json();
-
-      let imageUrl = metadata.image;
-      if (imageUrl.startsWith("ipfs://")) {
-        imageUrl = "https://ipfs.io/ipfs/" + imageUrl.replace("ipfs://", "");
-      }
-
-      const img = document.createElement("img");
-      img.src = imageUrl;
-      img.alt = "UN5/ETH V4 LP NFT";
-      img.style.maxWidth = "100%";
-      img.style.border = "3px solid #0f0";
-      img.style.borderRadius = "12px";
-
-      const container = document.getElementById("image-container");
-      container.innerHTML = "";
-      container.appendChild(img);
-    } catch (err) {
-      document.getElementById("image-container").innerText = "❌ Failed to load NFT image.";
-      console.error(err);
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>UN5 / ETH V4 Live LP NFT</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <style>
+    body {
+      background: black;
+      color: limegreen;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
     }
-  }
+    h1 { font-size: 24px; }
+    .info { margin: 15px 0; }
+    #image-container img {
+      border: 3px solid limegreen;
+      border-radius: 8px;
+      max-width: 90%;
+    }
+  </style>
+</head>
+<body>
+  <h1>UN5 / ETH V4 Live LP NFT</h1>
+  <div class="info"><strong>Token ID:</strong> 33948</div>
+  <div class="info"><strong>Wallet:</strong> 0x090C...338A</div>
+  <div class="info"><strong>Source:</strong> Uniswap V4</div>
+  <div class="info">This image is fetched directly from Uniswap official NFT metadata.</div>
+  <div id="image-container">⏳ Loading NFT image...</div>
 
-  loadNFT();
-</script>
+  <script>
+    const provider = new ethers.providers.JsonRpcProvider("https://eth-mainnet.g.alchemy.com/v2/demo");
+    const nftContract = new ethers.Contract(
+      "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
+      ["function tokenURI(uint256 tokenId) view returns (string)"],
+      provider
+    );
+
+    const tokenId = "33948";
+
+    async function loadNFT() {
+      try {
+        const uri = await nftContract.tokenURI(tokenId);
+        const fixedUri = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+        const res = await fetch(fixedUri);
+        const metadata = await res.json();
+
+        const imageUrl = metadata.image.startsWith("ipfs://")
+          ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+          : metadata.image;
+
+        const img = document.createElement("img");
+        img.src = imageUrl;
+        img.alt = "UN5 / ETH V4 LP NFT";
+        document.getElementById("image-container").innerHTML = "";
+        document.getElementById("image-container").appendChild(img);
+      } catch (err) {
+        document.getElementById("image-container").innerText = "❌ Failed to load NFT image.";
+        console.error(err);
+      }
+    }
+
+    loadNFT();
+  </script>
+</body>
+</html>
