@@ -1,51 +1,75 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>UN5/ETH V4 Live LP NFT</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <meta charset="UTF-8" />
+  <title>UN5 / ETH V4 Live LP NFT</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <style>
-    body { font-family: sans-serif; background: #111; color: #0f0; padding: 2em; text-align: center; }
-    img { max-width: 90vw; border: 2px solid #0f0; border-radius: 8px; margin-top: 1em; }
-    .info { margin-top: 1em; color: #ccc; }
-    button { padding: 10px 20px; margin-top: 1em; font-size: 16px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: #0f0;
+      text-align: center;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 24px;
+    }
+    .info {
+      margin: 10px 0;
+    }
+    #image-container img {
+      max-width: 90%;
+      border: 2px solid #0f0;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+    .error {
+      color: red;
+    }
   </style>
 </head>
 <body>
   <h1>UN5 / ETH V4 Live LP NFT</h1>
-  <p><strong>Token ID:</strong> 33948</p>
-  <p><strong>Wallet:</strong> 0x090C...338A</p>
-  <p><strong>Source:</strong> Uniswap V4</p>
 
-  <div class="info">This image is fetched directly from Uniswap official NFT metadata.</div>
+  <div class="info"><strong>Token ID:</strong> 33948</div>
+  <div class="info"><strong>Wallet:</strong> 0x090C...338A</div>
+  <div class="info"><strong>Source:</strong> Uniswap V4</div>
+
+  <p>This image is fetched directly from Uniswap official NFT metadata.</p>
   <div id="image-container">⏳ Loading NFT image...</div>
 
   <script>
-    const tokenId = 33948;
-    const managerAddr = "0xbD216513d74C8cf14cf4747E6AaA6420FF64ee9e";
-    async function load() {
-      if (!window.ethereum) {
-        document.getElementById("image-container").innerText = "⚠ Please install MetaMask.";
-        return;
+    const provider = new ethers.providers.JsonRpcProvider(
+      "https://eth-mainnet.g.alchemy.com/v2/demo" // 建议换成你自己的 Alchemy Key
+    );
+
+    const nftContract = new ethers.Contract(
+      "0xC36442b4a4522E871399CD717aBDD847Ab11FE88", // NonfungiblePositionManager
+      ["function tokenURI(uint256 tokenId) view returns (string)"],
+      provider
+    );
+
+    const tokenId = "33948";
+
+    async function loadNFT() {
+      try {
+        const uri = await nftContract.tokenURI(tokenId);
+        const response = await fetch(uri);
+        const metadata = await response.json();
+        const img = document.createElement("img");
+        img.src = metadata.image;
+        img.alt = "UN5/ETH V4 LP NFT";
+        document.getElementById("image-container").innerHTML = "";
+        document.getElementById("image-container").appendChild(img);
+      } catch (error) {
+        console.error(error);
+        document.getElementById("image-container").innerHTML =
+          "<p class='error'>❌ Failed to load NFT image.</p>";
       }
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const manager = new ethers.Contract(managerAddr, [
-        "function tokenURI(uint256) view returns (string)"
-      ], provider);
-
-      const raw = await manager.tokenURI(tokenId);
-      const base64 = raw.split(",")[1];
-      const json = JSON.parse(atob(base64));
-
-      const img = document.createElement("img");
-      img.src = json.image;
-      document.getElementById("image-container").innerHTML = "";
-      document.getElementById("image-container").appendChild(img);
     }
 
-    load();
+    loadNFT();
   </script>
 </body>
 </html>
